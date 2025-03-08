@@ -27,10 +27,10 @@ void AudioMixer::Init(const char* device)
     Close();
 
     SDL_AudioSpec want = {};
-    want.freq = 22050;
+    want.freq = 48000;
     want.format = AUDIO_S16SYS;
     want.channels = 2;
-    want.samples = 2048;
+    want.samples = 8192;
     want.callback = [](void* arg, uint8_t* dst, int32_t length) -> void {
         auto* mixer = static_cast<AudioMixer*>(arg);
         mixer->GetNextAudioChunk(dst, static_cast<size_t>(length));
@@ -108,15 +108,13 @@ SDLAudioSource* AudioMixer::AddSource(std::unique_ptr<SDLAudioSource> source)
 void AudioMixer::RemoveReleasedSources()
 {
     std::lock_guard<std::mutex> guard(_mutex);
-    _sources.erase(
-        std::remove_if(
-            _sources.begin(), _sources.end(),
-            [](std::unique_ptr<SDLAudioSource>& source) {
-                {
-                    return source->IsReleased();
-                }
-            }),
-        _sources.end());
+    std::erase_if(
+        _sources,
+        [](const std::unique_ptr<SDLAudioSource>& source) {
+            {
+                return source->IsReleased();
+            }
+        });
 }
 
 const AudioFormat& AudioMixer::GetFormat() const
@@ -151,7 +149,7 @@ void AudioMixer::GetNextAudioChunk(uint8_t* dst, size_t length)
             {
                 MixChannel(channel.get(), dst, length);
             }
-            it++;
+            ++it;
         }
     }
 }

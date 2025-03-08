@@ -53,6 +53,7 @@ namespace OpenRCT2::Audio
         {
             std::vector<std::string> devices;
             int32_t numDevices = SDL_GetNumAudioDevices(SDL_FALSE);
+            devices.reserve(numDevices);
             for (int32_t i = 0; i < numDevices; i++)
             {
                 devices.emplace_back(String::toStd(SDL_GetAudioDeviceName(i, SDL_FALSE)));
